@@ -1,3 +1,8 @@
+import datetime
+from sqlalchemy.orm import relationship
+from db import Base, Session, engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String, Date, ForeignKey, Table
 import psycopg2
 import time
 
@@ -15,6 +20,67 @@ def makeConnect():
 def closeConnect(connection):
     connection.commit()
     connection.close()
+s = Session()
+
+
+def recreate_database():
+    Base.metadata.drop_all(engine)
+    Base.metadata.create_all(engine)
+
+class User(Base):
+    __tablename__ = 'User'
+    userID = Column(Integer, primary_key=True)
+    name = Column(String)
+    birth_date = Column(Date)
+    event = relationship("Event")
+
+    def __init__(self, userID, name, birth_date):
+        self.userID = userID
+        self.name = name
+        self.birth_date = birth_date
+
+    def __repr__(self):
+        return "<User(name='{}', birth_date={})>".format(self.name, self.birth_date)
+
+
+class Ticket(Base):
+    __tablename__ = 'Ticket'
+    ticketID = Column(Integer, primary_key=True)
+    price = Column(Integer)
+    type = Column(String)
+    userID = Column(Integer)
+    event = relationship("Event")
+
+    def __init__(self, ticketID, price, type, userID):
+        self.ticketID = ticketID
+        self.price = price
+        self.type = type
+        self.userID = userID
+
+    def __repr__(self):
+        return "<Ticket(price ='{}', type={})>".format(self.price, self.type)
+
+
+class Event(Base):
+    __tablename__ = 'Event'
+    eventID = Column(Integer, primary_key=True)
+    date = Column(Date)
+    purpose = Column(String)
+
+    ticketID = Column(Integer, ForeignKey('Ticket.ticketID'))
+    User_userID = Column(Integer, ForeignKey('User.userID'))
+
+    def __init__(self, eventID, date, purpose, ticketID):
+        self.eventID = eventID
+        self.date = date
+        self.purpose = purpose
+        self.ticketID = ticketID
+
+    def __repr__(self):
+        return "<Event(date={}, purpose='{}')>".format(self.date, self.purpose)
+
+
+
 
 tables = {
     1: 'User',
@@ -23,6 +89,10 @@ tables = {
 }
 
 class Model:
+    def __init__(self):
+        self.session = Session()
+        self.connection = engine.connect()
+
     @staticmethod
     def validTable(table):
         incorrect = True
@@ -52,179 +122,57 @@ class Model:
         closeConnect(connection)
         return records
 
-    @staticmethod
-    def insert_for_table1(usname, usbirth_date, usid):
-        connection = makeConnect()
-        cursor = connection.cursor()
-        restart = True
-        while restart:
-            notice = "'This User ID already exists'"
-            insert = 'DO $$ BEGIN if not exists (select "userID" from "User" where "userID" = {}) then INSERT ' \
-                         'INTO "User"("userID", "name", "birth date") VALUES ({},{},{}); ' \
-                         'raise notice {}; else raise notice {}; ' \
-                         'end if; end $$;'.format(usid, usid, usname, usbirth_date, "'added'", notice)
-            restart = False
-        print('SQl query => ', insert)
-        cursor.execute(insert)
-        connection.commit()
-        print(connection.notices)
-        cursor.close()
-        closeConnect(connection)
 
     @staticmethod
-    def insert_for_table2(poid, poname, potopic, pouser):
-        connection = makeConnect()
-        cursor = connection.cursor()
-        restart = True
-        while restart:
-            notice = "'This Ticket ID already exists or this User ID does not exist'"
-            insert = 'DO $$  BEGIN IF EXISTS (select "userID" from "User" where "userID" = {}) and not exists ' \
-                     '(select "ticketID" from "Ticket" where "ticketID" = {}) THEN ' \
-                     'INSERT INTO "Ticket"("ticketID", "price", "type", "userID" ) values ({}, {}, {}, {}); RAISE NOTICE {};' \
-                     ' ELSE RAISE NOTICE {}; END IF; ' \
-                     'END $$;'.format(pouser, poid, poid, poname, potopic, pouser,  "'added'", notice)
-            restart = False
-        print('SQl query => ', insert)
-        cursor.execute(insert)
-        connection.commit()
-        print(connection.notices)
-        cursor.close()
-        closeConnect(connection)
+    def insert_for_table1(userID: int, name: str, birth_date: datetime.date) -> None:
+        user = User(userID=userID, name=name, birth_date=birth_date)
+        s.add(user)
+        s.commit()
 
     @staticmethod
-    def insert_for_table3(coid, codate, cotext, copost):
-        connection = makeConnect()
-        cursor = connection.cursor()
-
-        insert = '''
-        DO $$  
-        BEGIN 
-            IF EXISTS (SELECT "ticketID" FROM "Ticket" WHERE "ticketID" = {}) 
-                AND NOT EXISTS (SELECT "eventID" FROM "Event" WHERE "eventID" = {}) 
-            THEN 
-                INSERT INTO "Event"("eventID", "date", "purpose", "ticketID") 
-                VALUES ({}, '{}', '{}', {}); 
-                RAISE NOTICE 'added'; 
-            ELSE 
-                RAISE NOTICE 'This Event ID already exists or this Ticket ID does not exist'; 
-            END IF; 
-        END $$;
-        '''.format(coid, coid, coid, codate, cotext, copost)
-        cursor.execute(insert)
-        connection.commit()
-        print(connection.notices)
-        cursor.close()
-        closeConnect(connection)
+    def insert_for_table2(ticketID: int, price: int, type: str, userID: int) -> None:
+        ticket = Ticket(ticketID=ticketID, price=price, type=type, userID=userID)
+        s.add(ticket)
+        s.commit()
 
     @staticmethod
-    def delete_for_table1(usid):
-        connection = makeConnect()
-        cursor = connection.cursor()
-        restart = True
-        while restart:
-            delete ='delete from "Event" where "ticketID" in (select "ticketID" from "Ticket" where "userID" = {});' \
-                         'delete from "Ticket" where "userID" = {};' \
-                         'delete from "User" where "userID" = {};'.format(usid, usid, usid)
-
-            restart = False
-        print("SQL query => ", delete)
-        cursor.execute(delete)
-        connection.commit()
-        cursor.close()
-        closeConnect(connection)
+    def insert_for_table3(eventID: int, date: datetime.datetime, purpose: str, ticketID: int) -> None:
+        event = Event(eventID=eventID, date=date, purpose=purpose, ticketID=ticketID)
+        s.add(event)
+        s.commit()
 
     @staticmethod
-    def delete_for_table2(poid):
-        connection = makeConnect()
-        cursor = connection.cursor()
-        restart = True
-        while restart:
-            delete = 'delete from "Event" where "ticketID" = {};' \
-                     'delete from "Ticket" where "ticketID" = {};'.format(poid, poid)
-            restart = False
-        print("SQL query => ", delete)
-        cursor.execute(delete)
-        connection.commit()
-        cursor.close()
-        closeConnect(connection)
+    def delete_for_table1(userID) -> None:
+        sql_delete = s.query(User).filter_by(userID=userID).one()
+        s.delete(sql_delete)
+        s.commit()
 
     @staticmethod
-    def delete_for_table3(coid):
-        connection = makeConnect()
-        cursor = connection.cursor()
-        restart = True
-        while restart:
-            delete = 'delete from "User" where "User_userID" = {};' \
-                     'delete from "Event" where "eventID" = {};'.format(coid, coid)
-            restart = False
-        print("SQL query => ", delete)
-        cursor.execute(delete)
-        connection.commit()
-        cursor.close()
-        closeConnect(connection)
+    def delete_for_table2(ticketID) -> None:
+        sql_delete = s.query(Ticket).filter_by(ticketID=ticketID).one()
+        s.delete(sql_delete)
+        s.commit()
 
     @staticmethod
-    def update_for_table1(usid, set):
-        connection = makeConnect()
-        cursor = connection.cursor()
-        restart = True
-        while restart:
-            notice = "'There is nothing to update'"
-            update = 'DO $$ BEGIN IF EXISTS (select "userID" from "User" where "userID" = {}) THEN ' \
-                         'update "User" set {} where "userID" = {}; ' \
-                         'RAISE NOTICE {}; ELSE RAISE NOTICE {}; END IF; ' \
-                         'END $$;'.format(usid, set, usid, "'updated'", notice)
-            restart = False
-            pass
-        print("SQL query => ", update)
-        cursor.execute(update)
-        connection.commit()
-        print(connection.notices)
-        cursor.close()
-        closeConnect(connection)
-        pass
+    def delete_for_table3(eventID) -> None:
+        sql_delete = s.query(Event).filter_by(eventID=eventID).one()
+        s.delete(sql_delete)
+        s.commit()
 
     @staticmethod
-    def update_for_table2(poid, set):
-        connection = makeConnect()
-        cursor = connection.cursor()
-        restart = True
-        while restart:
-            notice = "'There is nothing to update'"
-            update = 'DO $$ BEGIN IF EXISTS (select "ticketID" from "Ticket" where "ticketID" = {}) THEN ' \
-                     'update "Ticket" set {} where "ticketID" = {}; ' \
-                     'RAISE NOTICE {}; ELSE RAISE NOTICE {}; END IF; ' \
-                     'END $$;'.format(poid, set, poid, "'updated'", notice)
-            restart = False
-            pass
-        print("SQL query => ", update)
-        cursor.execute(update)
-        connection.commit()
-        print(connection.notices)
-        cursor.close()
-        closeConnect(connection)
-        pass
+    def update_for_table1(userID: int, name: str, birth_date: datetime.datetime) -> None:
+        s.query(User).filter_by(userID=userID).update({User.name: name, User.birth_date: birth_date})
+        s.commit()
 
     @staticmethod
-    def update_for_table3(coid, set):
-        connection = makeConnect()
-        cursor = connection.cursor()
-        restart = True
-        while restart:
-            notice = "'There is nothing to update'"
-            update = 'DO $$ BEGIN IF EXISTS (select "eventID" from "Event" where "eventID" = {}) THEN ' \
-                     'update "Event" set {} where "eventID" = {}; ' \
-                     'RAISE NOTICE {}; ELSE RAISE NOTICE {}; END IF; ' \
-                     'END $$;'.format(coid, set, coid, "'updated'", notice)
-            restart = False
-            pass
-        print("SQL query => ", update)
-        cursor.execute(update)
-        connection.commit()
-        print(connection.notices)
-        cursor.close()
-        closeConnect(connection)
-        pass
+    def update_for_table2(ticketID: int, price: int, type: str) -> None:
+        s.query(Ticket).filter_by(ticketID=ticketID).update({Ticket.price: price, Ticket.type: type})
+        s.commit()
+
+    @staticmethod
+    def update_for_table3(eventID: int, date: datetime.datetime, purpose: str) -> None:
+        s.query(Event).filter_by(eventID=eventID).update({Event.date: date, Event.purpose: purpose})
+        s.commit()
 
     @staticmethod
     def select1(user):
