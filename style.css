@@ -1,0 +1,214 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "TimesNewRoman";
+  background-image: url(background1.jpg);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-size: 100%;
+}
+
+.wrapper {
+  width: 900px;
+  margin: 0 auto;
+}
+
+.header,
+.footer {
+  padding: 10px;
+  background: rgb(251, 248, 84);
+}
+
+.footer {
+  clear: both;
+  font-style: italic;
+}
+
+.header {
+  height: 70px;
+}
+
+.content-container {
+  height: 500px;
+}
+
+.sidebar {
+  float: right;
+  width: 170px;
+  height: 100%;
+  padding: 10px;
+  margin-top: 0px;
+  color: white;
+  background: rgb(251, 248, 84);
+}
+
+.sidebar ul {
+  margin: 0 auto;
+  padding: 30px 0 0 0;
+  text-align: center;
+  width: 100%;
+}
+
+.sidebar ul li {
+  list-style-type: none;
+  margin-bottom: 5px;
+}
+
+.sidebar ul li a {
+  text-decoration: none;
+  color: rgb(0, 0, 0);
+  font-weight: bold;
+}
+
+.sidebar ul li a:hover {
+  color: rgb(255, 17, 207);
+}
+
+.content {
+  height: 100%;
+  margin-right: 190px;
+  padding: 10px;
+  color: rgb(0, 0, 0);
+  font-size: 18px;
+  font-weight: bold;
+  text-shadow: rgb(255, 254, 254) 0 0 3px;
+}
+
+.clearfix::after {
+  display: table;
+  content: "";
+  clear: both;
+}
+
+.menu > ul {
+  margin: 0 auto;
+  padding: 2px 0 0 0;
+  border-top: 1px dotted rgb(0, 0, 0);
+  border-bottom: 1px dotted rgb(0, 0, 0);
+  text-align: center;
+  width: 100%;
+}
+
+.menu {
+  margin: 15px 0px;
+  float: right;
+}
+
+.menu > ul > li {
+  list-style-type: none;
+  margin: 0;
+  padding: 3px 0;
+  display: inline;
+}
+
+.menu > ul > li > a {
+  padding: 0 20px;
+  line-height: 40px;
+  color: rgb(0, 0, 0);
+  text-transform: uppercase;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.menu > ul > li > a:hover {
+  /*color: rgba(230,117,69,1);*/
+  color: rgb(255, 17, 207);
+}
+
+.products-menu {
+  background: rgba(2, 2, 2, 0.5);
+  padding: 0 20px;
+  margin-left: 135px;
+  margin-top: 2px;
+  position: absolute;
+  border: 1px dotted rgb(0, 0, 0);
+  border-top: none;
+}
+
+.products-menu li {
+  display: block;
+  padding: 5px 0px;
+}
+
+.products-menu li a {
+  color: rgb(251, 248, 84);
+  text-decoration: none;
+  text-transform: uppercase;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.products-menu li a:hover {
+  color: rgb(112, 85, 107);
+}
+
+.logo {
+  float: left;
+  min-width: 300px;
+}
+
+.logo h2 {
+  font-family: "Dancing Script", cursive;
+  margin-left: 80px;
+  font-size: 28px;
+  color: rgb(0, 0, 0);
+}
+
+img {
+  width: 70px;
+  float: left;
+}
+
+.AboutUs {
+  font-style: italic;
+  text-shadow: rgb(255, 255, 255) 0 0 3px;
+  margin-top: 240px;
+}
+
+.content .menu {
+}
+
+.content .menu img {
+  width: 210px;
+  height: 240px;
+  margin-left: 13px;
+}
+
+.products {
+  height: 100%;
+  padding: 10px;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.products ul li {
+  list-style-type: none;
+}
+
+.products ul li img {
+  width: 150px;
+  height: 160px;
+}
+
+.products ul li h3 {
+  font-style: italic;
+  color: rgb(3, 3, 3);
+  text-shadow: rgb(255, 255, 255) 0 0 3px;
+}
+
+.products ul li p {
+  margin-left: 180px;
+  margin-right: 270px;
+  color: rgb(0, 0, 0);
+  font-weight: bold;
+  text-shadow: rgb(255, 255, 255) 0 0 3px;
+}
+
+.lab {
+  text-align: center;
+  text-shadow: rgb(255, 255, 255) 0 0 3px;
+  font-style: italic;
+  color: rgb(0, 0, 0);
+  font-size: 28px;
+  padding-top: 100px;
+}
